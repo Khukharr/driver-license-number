@@ -1,1 +1,202 @@
-<h1>Numero permis de conduire:</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Numero de permis de conduire</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            background: #f9fafb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 480px;
+            position: relative; /* 🔧 Allow tooltip layering */
+        }
+
+        .card h2 {
+            text-align: center;
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+        }
+
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 1.2rem;
+            box-sizing: border-box;
+        }
+
+        .readonly-row {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background: #f3f4f6;
+            overflow: visible; /* 🔧 Allow tooltip to escape */
+            position: relative; /* 🔧 Needed for button absolute positioning */
+        }
+
+        .readonly-row input {
+            border: none;
+            background: transparent;
+            padding: 1rem;
+            flex: 1;
+            font-size: 1.1rem;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 0;
+        }
+
+        .readonly-row button {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            padding: 0 1rem;
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .readonly-row button:hover {
+            background-color: #e0e0e0;
+        }
+
+        .readonly-row button::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 130%; /* instead of 120% */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 999; /* 🔧 Make sure it appears above other elements */
+        }
+
+        .readonly-row button:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>Numero de permis de conduire</h2>
+    <input type="text" id="firstName" placeholder="Prenom" />
+    <input type="text" id="lastName" placeholder="Nom de Famille" />
+    <input type="text" id="birthDate" placeholder="AAAA-MM-JJ" />
+    <div class="readonly-row">
+        <input type="text" id="licenseNumber" readonly />
+        <button id="copyBtn" title="Copier dans le presse-papier">📋</button>
+    </div>
+</div>
+
+<script>
+    const firstNameInput = document.getElementById('firstName');
+    const lastNameInput = document.getElementById('lastName');
+    const birthDateInput = document.getElementById('birthDate');
+    const licenseOutput = document.getElementById('licenseNumber');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // debug
+    firstNameInput.value = 'Benoit';
+    lastNameInput.value = 'Verreault';
+    birthDateInput.value = '1982-10-11';
+    updateLicenseNumber();
+
+    function updateLicenseNumber() {
+        const first = firstNameInput.value.trim();
+        const last = lastNameInput.value.trim();
+        const dob = birthDateInput.value.trim();
+
+        if (first && last && dob && dob.split('-').length === 3) {
+            const [yyyy, mm, dd] = dob.split('-');
+            const dobFormatted = dd + mm + yyyy.slice(2);
+            
+            let cleanLast = last.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            cleanLast = cleanLast.substring(0, 1).toUpperCase() + cleanLast.substring(1).toLowerCase().replace(/[-aeiouhw]/g, '');
+            cleanLast = cleanLast.split('').filter((char, i, arr) => i === 0 || char.toLowerCase() !== arr[i - 1].toLowerCase()).join('');
+            cleanLast = cleanLast + '000';
+
+            let cleanFirst = first.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            cleanFirst = cleanFirst.substring(0, 1).toUpperCase()
+            cleanFirst = cleanFirst.replace(/[AB]/, '1');
+            cleanFirst = cleanFirst.replace(/C/, '2');
+            cleanFirst = cleanFirst.replace(/[DEF]/, '3');
+            cleanFirst = cleanFirst.replace(/[GHI]/, '4');
+            cleanFirst = cleanFirst.replace(/[JKL]/, '5');
+            cleanFirst = cleanFirst.replace(/[MNO]/, '6');
+            cleanFirst = cleanFirst.replace(/[PQR]/, '7');
+            cleanFirst = cleanFirst.replace(/[ST]/, '8');
+            cleanFirst = cleanFirst.replace(/[UVWXYZ]/, '9');
+
+            let prefix = cleanLast.charAt(0).toUpperCase() + cleanLast.substring(1, 4);
+            prefix = prefix.replace(/[bfpv]/, '1');
+            prefix = prefix.replace(/[cgkjqszx]/, '2');
+            prefix = prefix.replace(/[dt]/, '3');
+            prefix = prefix.replace(/l/, '4');
+            prefix = prefix.replace(/[mn]/, '5');
+            prefix = prefix.replace(/r/, '6');
+            prefix += cleanFirst;
+
+            let checksumDigits = `${prefix}${dobFormatted}0`;
+            let checksum = (checksumDigits.charCodeAt(0) - 64) * 12;
+            for (let i = 1; i < 12; i++) {
+                checksum += parseInt(checksumDigits.charAt(i), 10) * (12 - i);
+                console.log(checksumDigits.charAt(i));
+            }
+            checksum = `0${10 - (checksum % 10)}`;
+
+            licenseOutput.value = `${prefix}-${dobFormatted}-${checksum}`;
+        } else {
+            licenseOutput.value = '';
+        }
+    }
+
+    async function copyToClipboard() {
+        const text = licenseOutput.value;
+        if (!text) return;
+
+        try {
+            await navigator.clipboard.writeText(text);
+            copyBtn.textContent = '✅';
+            setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+        } catch (err) {
+            console.error('Erreur de copie:', err);
+            copyBtn.textContent = '⚠️';
+            setTimeout(() => { copyBtn.textContent = '📋'; }, 1500);
+        }
+    }
+
+    firstNameInput.addEventListener('input', updateLicenseNumber);
+    lastNameInput.addEventListener('input', updateLicenseNumber);
+    birthDateInput.addEventListener('input', updateLicenseNumber);
+    copyBtn.addEventListener('click', copyToClipboard);
+</script>
+</body>
+</html>
