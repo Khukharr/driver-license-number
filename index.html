@@ -150,12 +150,12 @@
             cleanFirst = cleanFirst.replace(/[UVWXYZ]/, '9');
 
             let prefix = cleanLast.charAt(0).toUpperCase() + cleanLast.substring(1, 4);
-            prefix = prefix.replace(/[bfpv]/, '1');
-            prefix = prefix.replace(/[cgkjqszx]/, '2');
-            prefix = prefix.replace(/[dt]/, '3');
-            prefix = prefix.replace(/l/, '4');
-            prefix = prefix.replace(/[mn]/, '5');
-            prefix = prefix.replace(/r/, '6');
+            prefix = prefix.replace(/[bfpv]/g, '1');
+            prefix = prefix.replace(/[cgkjqszx]/g, '2');
+            prefix = prefix.replace(/[dt]/g, '3');
+            prefix = prefix.replace(/l/g, '4');
+            prefix = prefix.replace(/[mn]/g, '5');
+            prefix = prefix.replace(/r/g, '6');
             prefix += cleanFirst;
 
             let checksumDigits = `${prefix}${dobFormatted}0`;
@@ -191,6 +191,56 @@
     lastNameInput.addEventListener('input', updateLicenseNumber);
     birthDateInput.addEventListener('input', updateLicenseNumber);
     copyBtn.addEventListener('click', copyToClipboard);
+
+    birthDateInput.addEventListener('input', () => {
+        let value = birthDateInput.value.replace(/\D/g, ''); // Remove all non-digit characters
+        let formatted = '';
+
+        if (value.length > 0) {
+            formatted += value.substring(0, 4);
+        }
+        if (value.length === 4) {
+            formatted += '-';
+        }
+        if (value.length >= 5) {
+            formatted += '-' + value.substring(4, 6);
+        } else if (value.length > 4) {
+            formatted += '-' + value.substring(4);
+        }
+        if (value.length === 6) {
+            formatted += '-';
+        }
+        if (value.length >= 7) {
+            formatted += '-' + value.substring(6, 8);
+        }
+
+        birthDateInput.value = formatted;
+    });
+
+    birthDateInput.addEventListener('keydown', function (e) {
+        const pos = birthDateInput.selectionStart;
+
+        // Handle backspace/delete near hyphens
+        if ((e.key === 'Backspace' || e.key === 'Delete') && (pos === 5 || pos === 8)) {
+            e.preventDefault();
+
+            let digits = birthDateInput.value.replace(/\D/g, '');
+            if (e.key === 'Backspace') {
+                digits = digits.slice(0, digits.length - 1); // Remove last digit
+            } else {
+                // For Delete key, remove the char at cursor position
+                const deletePos = pos === 5 ? 4 : 6;
+                digits = digits.slice(0, deletePos) + digits.slice(deletePos + 1);
+            }
+
+            birthDateInput.value = digits;
+            birthDateInput.dispatchEvent(new Event('input'));
+
+            setTimeout(() => {
+                birthDateInput.setSelectionRange(pos - 1, pos - 1);
+            });
+        }
+    });
 </script>
 </body>
 </html>
