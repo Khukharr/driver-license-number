@@ -133,8 +133,15 @@
             const dobFormatted = dd + mm + yyyy.slice(2);
             
             let cleanLast = last.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            cleanLast = cleanLast.substring(0, 1).toUpperCase() + cleanLast.substring(1).toLowerCase().replace(/[-aeiouhw]/g, '');
+            cleanLast = cleanLast.substring(0, 1).toUpperCase() + cleanLast.substring(1).toLowerCase()
+            cleanLast = cleanLast.replace(/[bfpv]/g, '1');
+            cleanLast = cleanLast.replace(/[cgkjqszx]/g, '2');
+            cleanLast = cleanLast.replace(/[dt]/g, '3');
+            cleanLast = cleanLast.replace(/l/g, '4');
+            cleanLast = cleanLast.replace(/[mn]/g, '5');
+            cleanLast = cleanLast.replace(/r/g, '6');
             cleanLast = cleanLast.split('').filter((char, i, arr) => i === 0 || char.toLowerCase() !== arr[i - 1].toLowerCase()).join('');
+            cleanLast = cleanLast.replace(/[-aeiouhw]/g, '');
             cleanLast = cleanLast + '000';
 
             let cleanFirst = first.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -149,14 +156,7 @@
             cleanFirst = cleanFirst.replace(/[ST]/, '8');
             cleanFirst = cleanFirst.replace(/[UVWXYZ]/, '9');
 
-            let prefix = cleanLast.charAt(0).toUpperCase() + cleanLast.substring(1, 4);
-            prefix = prefix.replace(/[bfpv]/g, '1');
-            prefix = prefix.replace(/[cgkjqszx]/g, '2');
-            prefix = prefix.replace(/[dt]/g, '3');
-            prefix = prefix.replace(/l/g, '4');
-            prefix = prefix.replace(/[mn]/g, '5');
-            prefix = prefix.replace(/r/g, '6');
-            prefix += cleanFirst;
+            let prefix = cleanLast.charAt(0).toUpperCase() + cleanLast.substring(1, 4) + cleanFirst;
 
             let checksumDigits = `${prefix}${dobFormatted}0`;
             let checksum = (checksumDigits.charCodeAt(0) - 64) * 12;
